@@ -76,4 +76,3 @@ def news_search(query: str, api_key: str) -> str:
         out.append(f"{title} — {url}")
     return "\n".join(out) or "No news found."
 
-

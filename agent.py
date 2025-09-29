@@ -1,6 +1,7 @@
 # agent.py
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.agents import initialize_agent, AgentType, Tool
+from langchain.memory import ConversationBufferMemory
 from tools import (
     multi_web_search,
     youtube_search,
@@ -10,15 +11,19 @@ from tools import (
 
 # -----------------------
 #  API Keys
-# ----------------------- 
-GOOGLE_API_KEY = "google api key" # free
-OPENWEATHER_API_KEY = "open weather api key" # free
-NEWS_API_KEY = "news api key" # free
+# -----------------------
+GOOGLE_API_KEY =  "google api key"  # free
+OPENWEATHER_API_KEY = "open weather api key"  # free
+NEWS_API_KEY = "news api key"  # free
 
 # -----------------------
 # Setup LLM
 # -----------------------
-llm = ChatGoogleGenerativeAI(model='gemini-2.5-flash', google_api_key=GOOGLE_API_KEY)
+llm = ChatGoogleGenerativeAI(
+    model="gemini-2.5-flash",
+    google_api_key=GOOGLE_API_KEY,
+    temperature=0.7,   # make it a bit conversational
+)
 
 # -----------------------
 # Wrap Tools
@@ -43,8 +48,16 @@ tools = [
         name="NewsSearch",
         func=lambda q: news_search(q, NEWS_API_KEY),
         description="Fetch latest news for a given topic.",
-    )
+    ),
 ]
+
+# -----------------------
+# Add Memory
+# -----------------------
+memory = ConversationBufferMemory(
+    memory_key="chat_history", 
+    return_messages=True
+)
 
 # -----------------------
 # Initialize Agent
@@ -52,9 +65,10 @@ tools = [
 agent = initialize_agent(
     tools=tools,
     llm=llm,
-    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+    agent=AgentType.CONVERSATIONAL_REACT_DESCRIPTION,  # conversational agent type
     verbose=True,
     handle_parsing_errors=True,
+    memory=memory,
 )
 
 # -----------------------
